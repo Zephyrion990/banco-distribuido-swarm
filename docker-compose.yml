@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # CAPA DEL BACKEND
+  backend:
+    image: zephyr199009/banco-backend:latest
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    networks:
+      - red-bancaria-overlay
+    deploy:
+      mode: replicated
+      replicas: 2 
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first 
+      restart_policy:
+        condition: on-failure
+
+  # CAPA DEL FRONTEND
+  frontend:
+    image: zephyr199009/banco-backend:latest
+    ports:
+      - "80:3000"
+    networks:
+      - red-bancaria-overlay
+    deploy:
+      mode: replicated
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager 
+      restart_policy:
+        condition: on-failure
+
+networks:
+  red-bancaria-overlay:
+    driver: overlay 
