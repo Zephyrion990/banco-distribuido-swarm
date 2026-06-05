@@ -1,10 +1,8 @@
-// =========================================================================
-// NUBEBANK — app.js
-// =========================================================================
 let TOKEN = localStorage.getItem('bank_token') || null;
 let USER_DATA = null;
 let PENDING_TRANSFER = null;
 
+// DOM
 const viewAuth      = document.getElementById('view-auth');
 const viewDashboard = document.getElementById('view-dashboard');
 const toast         = document.getElementById('toast');
@@ -43,6 +41,57 @@ const passInput      = document.getElementById('auth-password');
 let esRegistro = false;
 let toastTimeout = null;
 
+// =========================================================================
+// FILTROS DE ENTRADA EN TIEMPO REAL
+// =========================================================================
+
+// Nombre completo: solo letras, espacios, acentos y guiones
+const authNameInput = document.getElementById('auth-name');
+authNameInput.addEventListener('input', () => {
+    const cursor = authNameInput.selectionStart;
+    const cleaned = authNameInput.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s'-]/g, '');
+    if (authNameInput.value !== cleaned) {
+        authNameInput.value = cleaned;
+        authNameInput.setSelectionRange(cursor - 1, cursor - 1);
+    }
+});
+authNameInput.addEventListener('keydown', (e) => {
+    // Bloquear teclas numéricas del teclado principal y del numpad
+    if ((e.key >= '0' && e.key <= '9') || (e.code >= 'Numpad0' && e.code <= 'Numpad9')) {
+        e.preventDefault();
+    }
+});
+
+// Monto de transferencia: solo números y un punto decimal, máximo 2 decimales
+const transferAmountInput = document.getElementById('transfer-amount');
+transferAmountInput.addEventListener('keydown', (e) => {
+    const allowed = ['Backspace','Delete','ArrowLeft','ArrowRight','Tab','Home','End'];
+    if (allowed.includes(e.key)) return;
+    // Permitir un solo punto decimal
+    if (e.key === '.') {
+        if (transferAmountInput.value.includes('.')) e.preventDefault();
+        return;
+    }
+    // Solo dígitos
+    if (!(e.key >= '0' && e.key <= '9') && !(e.code >= 'Numpad0' && e.code <= 'Numpad9')) {
+        e.preventDefault();
+    }
+});
+transferAmountInput.addEventListener('input', () => {
+    let val = transferAmountInput.value;
+    // Eliminar cualquier carácter que no sea dígito o punto
+    val = val.replace(/[^0-9.]/g, '');
+    // Conservar solo el primer punto
+    const parts = val.split('.');
+    if (parts.length > 2) val = parts[0] + '.' + parts.slice(1).join('');
+    // Máximo 2 decimales
+    if (parts[1]?.length > 2) val = parts[0] + '.' + parts[1].slice(0, 2);
+    if (transferAmountInput.value !== val) transferAmountInput.value = val;
+});
+
+// =========================================================================
+// TOAST
+// =========================================================================
 function mostrarAlerta(mensaje, esError = false) {
     if (toastTimeout) {
         clearTimeout(toastTimeout);
@@ -100,7 +149,7 @@ btnToggleAuth.addEventListener('click', (e) => {
 });
 
 // =========================================================================
-// LOGIN / REGISTRO
+// AUTH: LOGIN / REGISTRO
 // =========================================================================
 formAuth.addEventListener('submit', async (e) => {
     e.preventDefault();
