@@ -36,5 +36,5 @@ jobs:
           username: ${{ secrets.AWS_USER }}
           key: ${{ secrets.AWS_SSH_KEY }}
           script: |
-            # Entrar al grupo de docker y forzar la actualización progresiva del servicio
-            sg docker -c "docker service update --image zephyr199009/banco-backend:latest mibanco_banco-api --force-update"
+            # Forzar la actualización progresiva inyectando una variable con la fecha del despliegue
+            sg docker -c "docker service update --env-add DEPLOY_DATE=\$(date +%s) --image zephyr199009/banco-backend:latest mibanco_banco-api"
