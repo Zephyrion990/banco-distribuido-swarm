@@ -3,12 +3,11 @@ name: Pipeline CI/CD Banco Distributed
 on:
   push:
     branches:
-      - main  # Se activa automáticamente al hacer push a la rama principal
+      - main
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout del código
         uses: actions/checkout@v3
@@ -24,4 +23,18 @@ jobs:
         with:
           context: .
           push: true
-          tags: zephyr199009/banco-backend:latest 
+          tags: zephyr199009/banco-backend:latest
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build-and-push 
+    steps:
+      - name: Ejecutar comando de actualización en AWS via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.AWS_HOST }}
+          username: ${{ secrets.AWS_USER }}
+          key: ${{ secrets.AWS_SSH_KEY }}
+          script: |
+            # Entrar al grupo de docker y forzar la actualización progresiva del servicio
+            sg docker -c "docker service update --image zephyr199009/banco-backend:latest mibanco_banco-api --force-update"
