@@ -1,11 +1,14 @@
 const express = require('express');
+const cors = require('cors');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
+
 
 // Servir los archivos del Frontend de forma desacoplada desde la carpeta public
 app.use(express.static('public'));
