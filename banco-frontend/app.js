@@ -2,6 +2,9 @@ let TOKEN = localStorage.getItem('bank_token') || null;
 let USER_DATA = null;
 let PENDING_TRANSFER = null;
 
+// IP Fija del Backend en AWS
+const API_BASE_URL = 'http://98.87.199.55:3000';
+
 // DOM
 const viewAuth      = document.getElementById('view-auth');
 const viewDashboard = document.getElementById('view-dashboard');
@@ -159,7 +162,7 @@ formAuth.addEventListener('submit', async (e) => {
 
     setAuthLoading(true);
 
-    const url      = esRegistro ? '/api/auth/register' : '/api/auth/login';
+    const url      = esRegistro ? `${API_BASE_URL}/api/auth/register` : `${API_BASE_URL}/api/auth/login`;
     const bodyData = esRegistro ? { name, email, password } : { email, password };
 
     try {
@@ -203,7 +206,7 @@ async function cargarDashboard() {
     if (!TOKEN) return;
 
     try {
-        const resUser = await fetch('/api/user/dashboard', {
+        const resUser = await fetch(`${API_BASE_URL}/api/user/dashboard`, {
             headers: { 'Authorization': `Bearer ${TOKEN}` }
         });
         const dataUser = await resUser.json();
@@ -257,7 +260,7 @@ async function cargarMovimientos() {
     const rango = document.getElementById('filter-time')?.value || 'todos';
 
     try {
-        const res  = await fetch(`/api/user/movements?rango=${rango}`, {
+        const res  = await fetch(`${API_BASE_URL}/api/user/movements?rango=${rango}`, {
             headers: { 'Authorization': `Bearer ${TOKEN}` }
         });
         const data = await res.json();
@@ -357,7 +360,7 @@ btnModalConfirm.addEventListener('click', async () => {
     const { target_account, amount, concept } = PENDING_TRANSFER;
 
     try {
-        const response = await fetch('/api/transactions/transfer', {
+        const response = await fetch(`${API_BASE_URL}/api/transactions/transfer`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -400,7 +403,7 @@ formAgenda.addEventListener('submit', async (e) => {
     const target_account_number = document.getElementById('agenda-account').value.trim();
 
     try {
-        const res  = await fetch('/api/user/agenda', {
+        const res  = await fetch(`${API_BASE_URL}/api/user/agenda`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
             body: JSON.stringify({ alias, target_account_number })
@@ -420,7 +423,7 @@ async function actualizarAgenda() {
     if (!listAgenda || !TOKEN) return;
 
     try {
-        const res  = await fetch('/api/user/agenda', {
+        const res  = await fetch(`${API_BASE_URL}/api/user/agenda`, {
             headers: { 'Authorization': `Bearer ${TOKEN}` }
         });
         const data = await res.json();
@@ -482,7 +485,7 @@ async function actualizarAgenda() {
                 if (!confirm('¿Eliminar este contacto de la agenda?')) return;
                 const id = btn.getAttribute('data-id');
                 try {
-                    const res  = await fetch(`/api/user/agenda/${id}`, {
+                    const res  = await fetch(`${API_BASE_URL}/api/user/agenda/${id}`, {
                         method: 'DELETE',
                         headers: { 'Authorization': `Bearer ${TOKEN}` }
                     });
@@ -507,7 +510,7 @@ async function actualizarAgenda() {
                 if (!nuevoAlias.trim()) return mostrarAlerta('El nombre no puede estar vacío', true);
 
                 try {
-                    const res  = await fetch(`/api/user/agenda/${id}`, {
+                    const res  = await fetch(`${API_BASE_URL}/api/user/agenda/${id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${TOKEN}` },
                         body: JSON.stringify({ nuevoAlias })
@@ -551,6 +554,10 @@ btnLogout.addEventListener('click', logout);
 // PERSISTENCIA DE SESIÓN
 // =========================================================================
 window.addEventListener('DOMContentLoaded', async () => {
+    // Nota: Agregado para que use el token almacenado si el script inicia con TOKEN vacío en memoria
+    if (!TOKEN) {
+        TOKEN = localStorage.getItem('bank_token') || null;
+    }
     if (TOKEN) {
         await cargarDashboard();
         await actualizarAgenda();

@@ -21,7 +21,7 @@ jobs:
       - name: Construir y subir imagen de Docker
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./banco-backend  
           push: true
           tags: zephyr199009/banco-backend:latest
 
