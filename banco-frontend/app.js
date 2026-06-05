@@ -3,7 +3,7 @@ let USER_DATA = null;
 let PENDING_TRANSFER = null;
 
 // IP Fija del Backend en AWS
-const API_BASE_URL = 'http://98.87.199.55:3000';
+const API_BASE_URL = 'http://98.87.199.55:8080';
 
 // DOM
 const viewAuth      = document.getElementById('view-auth');
